@@ -4,53 +4,54 @@
 
 using namespace std;
 
-#define POP 20
+#define POP 20      //Define o tamanho da população. Pode ser editado.
 
 struct Individuo{
-    int fitness;
-    int caminho[5];
-    float peso;
+    int fitness;    // armazena o valor do fitness de cada invidivíduo
+    int caminho[5]; // armazena o caminho do indivíduo
+    float peso;     // armazena um valor auxiliar que será utilizado na seleção (usando roleta)
 };
 
 
-void gerarPopulacaoAleatoriamente(Individuo populacao [POP]);
-void imprimePopulacao(Individuo populacao[POP], int tam);
-int fitnessFunction(int caminho[5], int dados[6][6]);
-void ordenar(Individuo populacao[POP]);
-void selecao(Individuo populacao[POP], Individuo pais[], int k);
-void cruzamento(Individuo pais[], Individuo filhos[], int k);
-void mutacao(Individuo filhos[], int k);
-void atualizaGeracao(Individuo populacao[POP], Individuo filhos[], int k);
+void gerarPopulacaoAleatoriamente(Individuo populacao [POP]);  //função para inicializar a população com indivíduos aleatórios
+void imprimePopulacao(Individuo populacao[POP], int tam);      //função criada para imprimir a população de indivíduos na tela, se necessário
+int fitnessFunction(int caminho[5], int dados[6][6]);          //função fitness para avaliar cada indivíduo
+void ordenar(Individuo populacao[POP]);                        //função para ordenar crescentemente os indivíduos, levando em consideração o fitness de cada um
+void selecao(Individuo populacao[POP], Individuo pais[], int k);//função para selecionar os pais, utilizando o método da roleta
+void cruzamento(Individuo pais[], Individuo filhos[], int k);   //função para cruzar os pais, gerando os filhos para a próxima geração
+void mutacao(Individuo filhos[], int k);                        //função para efetuar mutação em um determinado indivíduo
+void atualizaGeracao(Individuo populacao[POP], Individuo filhos[], int k); //função para atualizar a população com os novos indivíduos 
 
-void entrada_dados(int dados[6][6]);
-
-
-
+void entrada_dados(int dados[6][6]); //função para entrar com os dados disponibilizados na prova
 
 
 int main()
 {
-    int dados[6][6];
-    entrada_dados(dados);
+    int dados[6][6];        //Matriz para armazenar a entrada de dados. Por mais que só fosse necessário uma matriz 5x5,
+                            //optamos por criar uma 6x6 para que os elementos da matriz fossem indexados conforme as cidades
+                            //foram dispostas na prova. Por exemplo: A distancia entre a cidade 1 e 3 pode ser acessada atraves do elemento
+                            // dados[1][3] da nossa matriz.
+    
+    entrada_dados(dados);   //entrada de dados
 
     int k = (POP-2);  //NUMERO DE FILHOS PARA A PROXIMA GERAÇÃO, TENDO EM VISTA QUE OS 2 MELHORES
                       //DA GERAÇÃO ATUAL SERÃO MANTIDOS POR ELITISMO
 
-    Individuo populacao[POP];
-    gerarPopulacaoAleatoriamente(populacao);
-    imprimePopulacao(populacao, POP);
+    Individuo populacao[POP];                       //vetor que armazena a população
+    gerarPopulacaoAleatoriamente(populacao);        //gera população aleatoriamente
 
-    int it=1;
+    int it=1;    //contador de iterações                              
     while(it<=1000){
         //cout << endl << endl<< endl << endl << "-------------------GERACAO " << it << "---------------------" << endl;
         //AVALIAR A POPULAÇÃO
         for(int i=0; i<POP; i++){
-            populacao[i].fitness = fitnessFunction(populacao[i].caminho, dados);
+            populacao[i].fitness = fitnessFunction(populacao[i].caminho, dados); //avalia toda população, individuo por individuo e armazena no atributo da estrutura criada para isso
             //cout << populacao[i].fitness << " ";
         }
         //cout << endl;
         //ORDENAR EM FUNÇÃO DO FITNESS DE CADA INDIVIDUO
-        ordenar(populacao);
+        ordenar(populacao); //Ordena a população para que os melhores elementos de cada geração fiquem no início do vetor
+                            //Com isso, para fazermos o elitismo só precisamos manter os primeiros elementos do vetor.
         /*cout << endl;
         for(int i=0; i<POP; i++){
             cout << populacao[i].fitness << " ";
@@ -58,16 +59,16 @@ int main()
         cout << endl << endl;*/
 
         //SELEÇÃO
-        Individuo pais[k];
-        Individuo filhos[k];
-        selecao(populacao, pais, k);
+        Individuo pais[k];     //Vetor que irá armazenar os pais selecionados em cada geração
+        Individuo filhos[k];   //Vetor que irá armazenar os filhos gerados em cada geração
+        selecao(populacao, pais, k);  //Chamada a função para selecionar os pais através do método da roleta
         /*for(int i=0; i<k; i++){
             cout << pais[i].peso << " ";
         }
         cout << endl;*/
 
 
-        cruzamento(pais, filhos, k);
+        cruzamento(pais, filhos, k);  //Faz o cruzamento utilizando a tecnica "um ponto"
 
         /*cout << "----------PAIS-----------" << endl;
         imprimePopulacao(pais, k);
@@ -75,13 +76,14 @@ int main()
         cout << "----------FILHOS-----------" << endl;
         imprimePopulacao(filhos, k);*/
 
-        mutacao(filhos, k);
-        atualizaGeracao(populacao, filhos, k);
+        mutacao(filhos, k);         //Faz a mutação invertendo a posição de dois nós selecionados aleatóriamente
+        atualizaGeracao(populacao, filhos, k); //atualiza a geração com os novos indivíduos gerados
 
 
-        it++;
+        it++; //incrementa o contador de iterações
     }
 
+    //Imprime a solução encontrada
     cout << "O MELHOR DE TODOS OS CAMINHOS EH: " << endl;
     cout << populacao[0].caminho[0] << " " << populacao[0].caminho[1] << " " <<populacao[0].caminho[2] << " ";
     cout << populacao[0].caminho[3] << " " << populacao[0].caminho[4] << endl;
