@@ -5,6 +5,7 @@
 using namespace std;
 
 #define POP 20      //Define o tamanho da população. Pode ser editado.
+#define ITERACOES 100 //Define a quantidade de iterações. Pode ser editado.
 
 struct Individuo{
     int fitness;    // armazena o valor do fitness de cada invidivíduo
@@ -20,7 +21,7 @@ void ordenar(Individuo populacao[POP]);                        //função para o
 void selecao(Individuo populacao[POP], Individuo pais[], int k);//função para selecionar os pais, utilizando o método da roleta
 void cruzamento(Individuo pais[], Individuo filhos[], int k);   //função para cruzar os pais, gerando os filhos para a próxima geração
 void mutacao(Individuo filhos[], int k);                        //função para efetuar mutação em um determinado indivíduo
-void atualizaGeracao(Individuo populacao[POP], Individuo filhos[], int k); //função para atualizar a população com os novos indivíduos 
+void atualizaGeracao(Individuo populacao[POP], Individuo filhos[], int k); //função para atualizar a população com os novos indivíduos
 
 void entrada_dados(int dados[6][6]); //função para entrar com os dados disponibilizados na prova
 
@@ -31,7 +32,7 @@ int main()
                             //optamos por criar uma 6x6 para que os elementos da matriz fossem indexados conforme as cidades
                             //foram dispostas na prova. Por exemplo: A distancia entre a cidade 1 e 3 pode ser acessada atraves do elemento
                             // dados[1][3] da nossa matriz.
-    
+
     entrada_dados(dados);   //entrada de dados
 
     int k = (POP-2);  //NUMERO DE FILHOS PARA A PROXIMA GERAÇÃO, TENDO EM VISTA QUE OS 2 MELHORES
@@ -40,41 +41,23 @@ int main()
     Individuo populacao[POP];                       //vetor que armazena a população
     gerarPopulacaoAleatoriamente(populacao);        //gera população aleatoriamente
 
-    int it=1;    //contador de iterações                              
-    while(it<=1000){
-        //cout << endl << endl<< endl << endl << "-------------------GERACAO " << it << "---------------------" << endl;
+    int it=1;    //contador de iterações
+    while(it<=ITERACOES){
         //AVALIAR A POPULAÇÃO
         for(int i=0; i<POP; i++){
             populacao[i].fitness = fitnessFunction(populacao[i].caminho, dados); //avalia toda população, individuo por individuo e armazena no atributo da estrutura criada para isso
-            //cout << populacao[i].fitness << " ";
         }
-        //cout << endl;
+
         //ORDENAR EM FUNÇÃO DO FITNESS DE CADA INDIVIDUO
         ordenar(populacao); //Ordena a população para que os melhores elementos de cada geração fiquem no início do vetor
                             //Com isso, para fazermos o elitismo só precisamos manter os primeiros elementos do vetor.
-        /*cout << endl;
-        for(int i=0; i<POP; i++){
-            cout << populacao[i].fitness << " ";
-        }
-        cout << endl << endl;*/
 
         //SELEÇÃO
         Individuo pais[k];     //Vetor que irá armazenar os pais selecionados em cada geração
         Individuo filhos[k];   //Vetor que irá armazenar os filhos gerados em cada geração
         selecao(populacao, pais, k);  //Chamada a função para selecionar os pais através do método da roleta
-        /*for(int i=0; i<k; i++){
-            cout << pais[i].peso << " ";
-        }
-        cout << endl;*/
-
 
         cruzamento(pais, filhos, k);  //Faz o cruzamento utilizando a tecnica "um ponto"
-
-        /*cout << "----------PAIS-----------" << endl;
-        imprimePopulacao(pais, k);
-
-        cout << "----------FILHOS-----------" << endl;
-        imprimePopulacao(filhos, k);*/
 
         mutacao(filhos, k);         //Faz a mutação invertendo a posição de dois nós selecionados aleatóriamente
         atualizaGeracao(populacao, filhos, k); //atualiza a geração com os novos indivíduos gerados
@@ -92,7 +75,7 @@ int main()
     return 0;
 }
 
-void gerarPopulacaoAleatoriamente(Individuo populacao[10]){
+void gerarPopulacaoAleatoriamente(Individuo populacao[10]){ //FUNÇÃO PARA GERAR ALEATORIAMENTE A POPULAÇÃO COM INDIVÍDUOS VÁLIDOS, OU SEJA, QUE NÃO TENHAM NÓS REPETIDOS
     srand(time(NULL));
     int numRand;
     for(int i=0; i<POP; i++){
@@ -110,7 +93,7 @@ void gerarPopulacaoAleatoriamente(Individuo populacao[10]){
     }
 }
 
-void imprimePopulacao(Individuo populacao[], int tam){
+void imprimePopulacao(Individuo populacao[], int tam){ //FUNÇÃO AUXILIAR CASO DESEJE IMPRIMIR A POPULAÇÃO NA TELA
     for(int i=0; i<tam; i++){
         cout << "( ";
         for(int j=0; j<5; j++){
@@ -125,7 +108,7 @@ void imprimePopulacao(Individuo populacao[], int tam){
     }
 }
 
-int fitnessFunction(int caminho[5], int dados[6][6]){
+int fitnessFunction(int caminho[5], int dados[6][6]){ //FUNÇÃO DE AVALIAÇÃO QUE SOMA O VALOR DAS ARESTAS DO GRAFO
     int soma=0;
     for(int i=0;i<4;i++){
         soma += dados[caminho[i]][caminho[i+1]];
@@ -134,7 +117,7 @@ int fitnessFunction(int caminho[5], int dados[6][6]){
 }
 
 
-void ordenar(Individuo populacao[POP]){
+void ordenar(Individuo populacao[POP]){ //FUNÇÃO PARA ORDENAR O VETOR, MANTENDO OS INDIVÍDUOS COM MELHOR FITNESS NO INÍCIO DO VETOR POPULAÇÃO
     Individuo aux;
     for(int i=0; i<POP; i++){
         for(int j=i; j<POP; j++){
@@ -191,20 +174,24 @@ void cruzamento(Individuo pais[], Individuo filhos[], int k){
 
 
     //VERIFICAR SE EXISTEM CIDADES REPETIDAS E CORRIGIR
-    int matVerificacao[k][5] = {};
+    int matVerificacao[k][5];   //MATRIZ AUXILIAR, INICALIZADA COM ZEROS, PARA ARMAZENAR A QUANTIDADE DE CIDADES DIFERENTES EM CADA INDIVIDUO
+                                //POR EXEMPLO: O CAMINHO (1, 3, 2, 5, 4), APÓS SER VERIFICADO, TERÁ COMO RESULTADO NA
+                                //MATRIZ DE VERIFICAÇÃO UM VETOR DA SEGUINTE FORMA: (1, 1, 1, 1, 1)
+                                //QUE INDICA QUE CADA CIDADE APARECE UMA VEZ NO INDIVÍDUO.
+                                //OUTRO EXEMPLO: O CAMINHO(4, 4, 5, 5, 5), APÓS SER VERIFICADO, TERÁ COMO RESULTADO NA
+                                //MATRIZ DE VERIFICAÇÃO UM VETOR DA SEGUINTE FORMA: (0, 0, 0, 2, 3)
+                                //QUE INDICA QUE EXISTEM DOIS NÓS 4 REPETIDOS E TRÊS NÓS 5 REPETIDOS
+                                //A PARTIR DAÍ É FEITA A CORREÇAÕ PARA QUE ESSE INDIVÍDUO INVÁLIDO SE TORNE UM INDIVÍDUO DO TIPO (1, 1, 1, 1, 1), OU SEJA, NÃO TENHA NÓS REPETIDOS.
+    for(int i=0; i<k; i++){
+        for(int j=0; j<5; j++){
+            matVerificacao[i][j] = 0;
+        }
+    }
     for(int i=0; i<k; i++){
         for(int j=0; j<5; j++){
             matVerificacao[i][filhos[i].caminho[j]-1]++;
         }
     }
-
-    /*cout << "----------FILHOS ANTES DA CORRECAO----------" << endl;
-    for(int i=0; i<k; i++){
-        for(int j=0; j<5; j++){
-            cout << matVerificacao[i][j] << " ";
-        }
-        cout << endl;
-    }*/
 
     for(int i=0; i<k; i++){
         for (int j=0; j<5; j++){
@@ -225,20 +212,10 @@ void cruzamento(Individuo pais[], Individuo filhos[], int k){
         }
     }
 
-   /* cout << "----------FILHOS APOS A CORRECAO----------" << endl;
-    for(int i=0; i<k; i++){
-        for(int j=0; j<5; j++){
-            cout << matVerificacao[i][j] << " ";
-        }
-        cout << endl;
-    }
-    cout << "----------CAMINHOS-------------" << endl;
-    imprimePopulacao(filhos, k);*/
-
 }
 
 
-void mutacao(Individuo filhos[], int k){
+void mutacao(Individuo filhos[], int k){ //GERA DOIS NÚMEROS ALEATÓRIOS QUE SERÃO OS INDICES DOS NÓS QUE SERÃO INVERTIDOS
     srand(time(NULL));
     int auxRand = rand()%k; //Sortear o filho que sofrerá mutação
 
@@ -246,13 +223,13 @@ void mutacao(Individuo filhos[], int k){
     int c2;
     do{
         c2 = rand()%5;
-    }while(c1==c2);
+    }while(c1==c2); //CONDIÇÃO PARA GARANTIR QUE ELE IRÁ DE FATO INVERTER DOIS NÓS, OU SEJA, NÃO PERMITE QUE SEJAM GERADOS DOIS NÚMEROS ALEATÓRIOS IGUAIS
     int aux = filhos[auxRand].caminho[c1];
     filhos[auxRand].caminho[c1] = filhos[auxRand].caminho[c2];
     filhos[auxRand].caminho[c2] = aux;
 }
 
-void atualizaGeracao(Individuo populacao[POP], Individuo filhos[], int k){
+void atualizaGeracao(Individuo populacao[POP], Individuo filhos[], int k){ //ATUALIZA A POPULAÇÃO PARA A PRÓXIMA ITERAÇÃO
     for(int i=0; i<k; i++){
         populacao[i+2] = filhos[i];
     }
@@ -261,7 +238,7 @@ void atualizaGeracao(Individuo populacao[POP], Individuo filhos[], int k){
 
 
 
-void entrada_dados(int dados[6][6]){
+void entrada_dados(int dados[6][6]){ //Dados de entrada fornecidos na prova
     dados[1][1] = 0;
     dados[1][2] = 2;
     dados[1][3] = 9;
@@ -288,6 +265,7 @@ void entrada_dados(int dados[6][6]){
     dados[5][4] = 3;
     dados[5][5] = 0;
 
+    /*  DESCOMENTE ESSA PARTE DO CÓDIGO SE QUISER VER A REPRESENTAÇÃO EM FORMA DE MATRIZ DA ENTRADA
     for (int i = 1; i<=5; i++){
         for(int j = 1; j<=5; j++){
             cout  << dados[i][j] << " ";
@@ -295,6 +273,5 @@ void entrada_dados(int dados[6][6]){
         cout << endl;
     }
     cout << endl;
-
-
+    */
 }
